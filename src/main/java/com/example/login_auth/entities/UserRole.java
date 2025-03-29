@@ -1,6 +1,6 @@
 package com.example.login_auth.entities;
 
-public enum roles {
+public enum UserRole {
     ADMIN,
     USER,
     MODERATOR,
