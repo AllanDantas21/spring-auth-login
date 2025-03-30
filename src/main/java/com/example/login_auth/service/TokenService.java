@@ -45,6 +45,17 @@ public class TokenService {
         }
     }
 
+    public Boolean isTokenValid(String token, String email){
+        String tokenSubject = validateToken(token);
+        if (tokenSubject == null || tokenSubject.isEmpty()){
+            return false;
+        }
+        if (email.equals(tokenSubject)){
+            return true;
+        }
+        return false;
+    }
+
     private Instant genExpirationDate(){
         return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
     }
