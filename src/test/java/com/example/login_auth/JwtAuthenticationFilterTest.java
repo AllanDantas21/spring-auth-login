@@ -10,13 +10,14 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 
 import com.example.login_auth.configurations.JwtAuthenticationFilter;
 import com.example.login_auth.entities.User;
+import com.example.login_auth.repository.UserRepository;
 import com.example.login_auth.service.TokenService;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -28,7 +29,7 @@ public class JwtAuthenticationFilterTest {
     private TokenService tokenService;
 
     @Mock
-    private UserDetailsService userDetailsService;
+    private UserRepository userRepository;
 
     @InjectMocks
     private JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -56,7 +57,7 @@ public class JwtAuthenticationFilterTest {
         testUser.setRoles(Collections.singletonList("USER"));
         
         when(tokenService.validateToken(validToken)).thenReturn("testuser");
-        when(userDetailsService.loadUserByUsername("testuser")).thenReturn(testUser);
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         when(tokenService.isTokenValid(eq(validToken), eq("testuser"))).thenReturn(true);
     }
 
@@ -96,7 +97,7 @@ public class JwtAuthenticationFilterTest {
                 "Authenticated user should be testuser");
         
         verify(tokenService).validateToken(validToken);
-        verify(userDetailsService).loadUserByUsername("testuser");
+        verify(userRepository).findByUsername("testuser");
         verify(tokenService).isTokenValid(eq(validToken), eq("testuser"));
     }
 
@@ -114,7 +115,7 @@ public class JwtAuthenticationFilterTest {
                 "Security context should not contain authentication with invalid token");
         
         verify(tokenService).validateToken(invalidToken);
-        verify(userDetailsService).loadUserByUsername("testuser");
+        verify(userRepository).findByUsername("testuser");
         verify(tokenService).isTokenValid(eq(invalidToken), eq("testuser"));
     }
 }

@@ -13,7 +13,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import com.example.login_auth.controller.authController;
 import com.example.login_auth.configurations.JwtAuthenticationFilter;
 import com.example.login_auth.service.TokenService;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import com.example.login_auth.repository.UserRepository;
 
 @WebMvcTest(authController.class)
 public class AuthControllerTest {
@@ -25,7 +25,7 @@ public class AuthControllerTest {
     private TokenService tokenService;
     
     @MockBean
-    private UserDetailsService userDetailsService;
+    private UserRepository userRepository;
     
     @MockBean
     private JwtAuthenticationFilter jwtAuthenticationFilter;
