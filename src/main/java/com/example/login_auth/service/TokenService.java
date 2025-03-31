@@ -15,6 +15,7 @@ import com.example.login_auth.entities.User;
 @Service
 public class TokenService {
     private String secret = "evaitomando";
+    private String refreshSecret = "refreshsecretkey"; // Different secret for refresh tokens
 
     public String generateToken(User user){
         try{
@@ -48,13 +49,65 @@ public class TokenService {
         if (tokenSubject == null || tokenSubject.isEmpty()){
             return false;
         }
-        if (email.equals(tokenSubject)){
-            return true;
+        return true;
+    }
+
+    public String generateRefreshToken(User user){
+        try{
+            Algorithm algorithm = Algorithm.HMAC256(refreshSecret);
+            String token = JWT.create()
+                    .withIssuer("login-auth")
+                    .withSubject(user.getEmail())
+                    .withExpiresAt(genExpirationDate(24 * 1))
+                    .sign(algorithm);
+            return token;
+        } catch (JWTCreationException exception) {
+            throw new RuntimeException("Error while generating refresh token", exception);
         }
-        return false;
+    }
+
+    public String validateRefreshToken(String refreshToken){
+        try {
+            Algorithm algorithm = Algorithm.HMAC256(refreshSecret);
+            return JWT.require(algorithm)
+                    .withIssuer("login-auth")
+                    .build()
+                    .verify(refreshToken)
+                    .getSubject();
+        } catch (JWTVerificationException exception){
+            return "";
+        }
+    }
+
+    public String refreshAccessToken(String refreshToken) {
+        String email = validateRefreshToken(refreshToken);
+        if (email == null || email.isEmpty()) {
+            throw new RuntimeException("Invalid refresh token");
+        }
+        
+        User user = new User();
+        user.setEmail(email);
+        return generateToken(user);
+    }
+
+    public Boolean isRefreshTokenValid(String refreshToken, String email){
+        String tokenSubject = validateRefreshToken(refreshToken);
+        if (tokenSubject == null || tokenSubject.isEmpty()){
+            return false;
+        }
+        return email.equals(tokenSubject);
+    }
+
+    public Long getExpirationTime() {
+        return genExpirationDate().toEpochMilli();
     }
 
     private Instant genExpirationDate(){
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+        return genExpirationDate(1);
     }
+    
+    private Instant genExpirationDate(int hours){
+        return LocalDateTime.now().plusHours(hours).toInstant(ZoneOffset.of("-03:00"));
+    }
+
 }

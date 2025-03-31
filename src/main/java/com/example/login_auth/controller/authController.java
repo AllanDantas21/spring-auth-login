@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.login_auth.controller.dto.request.loginRequestDTO;
 import com.example.login_auth.controller.dto.request.registerRequestDTO;
+import com.example.login_auth.controller.dto.response.AuthResponseDTO;
 import com.example.login_auth.service.AuthService;
 
 import lombok.RequiredArgsConstructor;
@@ -19,14 +20,13 @@ import lombok.RequiredArgsConstructor;
 public class authController {
 
     private final AuthService authService;
-
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody registerRequestDTO request) {
+    public ResponseEntity<AuthResponseDTO> register(@RequestBody registerRequestDTO request) {
         return authService.registerUser(request);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody loginRequestDTO request) {
+    public ResponseEntity<AuthResponseDTO> login(@RequestBody loginRequestDTO request) {
         return authService.loginUser(request);
     }
     
