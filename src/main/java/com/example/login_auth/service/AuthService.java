@@ -1,5 +1,6 @@
 package com.example.login_auth.service;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,9 @@ public class AuthService {
         user.setPassword(request.password());
         userRepository.save(user);
         
-        return ResponseEntity.ok(generateAuthResponse(user));
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(generateAuthResponse(user));
     }
 
     public ResponseEntity<AuthResponseDTO> loginUser(loginRequestDTO request) {
@@ -37,7 +40,9 @@ public class AuthService {
             throw new IllegalArgumentException("Invalid password");
         }
         
-        return ResponseEntity.ok(generateAuthResponse(user));
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(generateAuthResponse(user));
     }
     
     private AuthResponseDTO generateAuthResponse(User user) {

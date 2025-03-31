@@ -1,5 +1,6 @@
 package com.example.login_auth.controller;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,18 +21,21 @@ import lombok.RequiredArgsConstructor;
 public class authController {
 
     private final AuthService authService;
-    @PostMapping("/register")
+    
+    @PostMapping(value = "/register", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthResponseDTO> register(@RequestBody registerRequestDTO request) {
         return authService.registerUser(request);
     }
 
-    @PostMapping("/login")
+    @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthResponseDTO> login(@RequestBody loginRequestDTO request) {
         return authService.loginUser(request);
     }
     
-    @GetMapping("/health")
-    public String health() {
-        return "OK";
+    @GetMapping(value = "/health", produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok()
+                .contentType(MediaType.TEXT_PLAIN)
+                .body("OK");
     }
 }
