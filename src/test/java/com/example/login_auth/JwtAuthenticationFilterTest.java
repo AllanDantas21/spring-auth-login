@@ -56,8 +56,10 @@ public class JwtAuthenticationFilterTest {
         testUser.setEmail("test@example.com");
         testUser.setRoles(Collections.singletonList("USER"));
         
+        // The filter uses email, not username for validation
         when(tokenService.validateToken(validToken)).thenReturn("testuser");
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
+        // Change findByUsername to findByEmail
+        when(userRepository.findByEmail("testuser")).thenReturn(Optional.of(testUser));
         when(tokenService.isTokenValid(eq(validToken), eq("testuser"))).thenReturn(true);
     }
 
@@ -97,15 +99,16 @@ public class JwtAuthenticationFilterTest {
                 "Authenticated user should be testuser");
         
         verify(tokenService).validateToken(validToken);
-        verify(userRepository).findByUsername("testuser");
+        // Change to verify findByEmail instead of findByUsername
+        verify(userRepository).findByEmail("testuser");
         verify(tokenService).isTokenValid(eq(validToken), eq("testuser"));
     }
 
     @Test
     public void testInvalidToken() throws Exception {
         String invalidToken = "invalid.token";
-        when(tokenService.validateToken(invalidToken)).thenReturn("testuser");
-        when(tokenService.isTokenValid(eq(invalidToken), eq("testuser"))).thenReturn(false);
+        // For invalid tokens, validateToken typically returns null or throws an exception
+        when(tokenService.validateToken(invalidToken)).thenReturn(null);
         
         request.addHeader("Authorization", "Bearer " + invalidToken);
         
@@ -115,7 +118,29 @@ public class JwtAuthenticationFilterTest {
                 "Security context should not contain authentication with invalid token");
         
         verify(tokenService).validateToken(invalidToken);
-        verify(userRepository).findByUsername("testuser");
-        verify(tokenService).isTokenValid(eq(invalidToken), eq("testuser"));
+        // No need to change this line as it's never called
+        verify(userRepository, never()).findByUsername(anyString());
+        verify(tokenService, never()).isTokenValid(anyString(), anyString());
+    }
+    
+    @Test
+    public void testExpiredToken() throws Exception {
+        String expiredToken = "expired.jwt.token";
+        // Token validation extracts the username
+        when(tokenService.validateToken(expiredToken)).thenReturn("testuser");
+        // But token is expired/invalid when checking with the user
+        when(tokenService.isTokenValid(eq(expiredToken), eq("testuser"))).thenReturn(false);
+        
+        request.addHeader("Authorization", "Bearer " + expiredToken);
+        
+        jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
+        
+        assertNull(SecurityContextHolder.getContext().getAuthentication(), 
+                "Security context should not contain authentication with expired token");
+        
+        verify(tokenService).validateToken(expiredToken);
+        // Change to verify findByEmail instead of findByUsername
+        verify(userRepository).findByEmail("testuser");
+        verify(tokenService).isTokenValid(eq(expiredToken), eq("testuser"));
     }
 }
